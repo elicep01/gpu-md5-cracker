@@ -1,4 +1,3 @@
-// File: src/main.cu
 #include <cstdio>
 #include <cstdint>
 #include <cuda_runtime.h>
