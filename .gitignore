@@ -1,1 +1,19 @@
 build/
+# build artifacts and executables
+*.exe
+*.obj
+*.lib
+*.exp
+*.dll
+
+# generated CUDA artifacts
+*.ptx
+*.cubin
+
+# vcpkg downloaded/installed DLLs
+libcrypto-3-x64.dll
+libssl-3-x64.dll
+
+# Visual Studio files
+*.vcxproj*
+*.sln
