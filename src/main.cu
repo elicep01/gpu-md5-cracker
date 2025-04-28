@@ -64,47 +64,70 @@ __host__ unsigned char hex2byte(char hi, char lo) {
 
 /* ---------- single-block MD5 (≤55 bytes) ---------- */
 __device__ void md5_single(const char* in, unsigned char dig[16]) {
-    unsigned char msg[64] = {0};
-    int len = 0;
-    while (len < PASSWORD_LEN && in[len]) ++len;
-    for (int i = 0; i < len; ++i) msg[i] = in[i];
-    msg[len] = 0x80;
-    uint64_t bits = (uint64_t)len * 8ULL;
-    for (int i = 0; i < 8; ++i) msg[56+i] = (bits >> (8*i)) & 0xFF;
-
-    uint32_t a=0x67452301, b=0xefcdab89, c=0x98badcfe, d=0x10325476;
+    // Build the 16-word MD5 block directly in registers:
     uint32_t M[16];
+
+    // Word 0: bytes 0–3 of the password
+    M[0] =  (uint32_t)in[0]
+          | ((uint32_t)in[1] <<  8)
+          | ((uint32_t)in[2] << 16)
+          | ((uint32_t)in[3] << 24);
+
+    // Word 1: bytes 4–6 + 0x80 padding
+    M[1] =  (uint32_t)in[4]
+          | ((uint32_t)in[5] <<  8)
+          | ((uint32_t)in[6] << 16)
+          | (0x80u         << 24);
+
+    // Words 2–13: all zero (no data)
     #pragma unroll
-    for(int i=0;i<16;++i)
-        M[i] = msg[4*i] | (msg[4*i+1]<<8) | (msg[4*i+2]<<16) | (msg[4*i+3]<<24);
+    for (int i = 2; i < 14; ++i) {
+        M[i] = 0u;
+    }
+
+    // Word 14: bit-length = 7 chars * 8 = 56
+    M[14] = 56u;
+
+    // Word 15: zero
+    M[15] = 0u;
+
+    // Now proceed with MD5 rounds exactly as before:
+    uint32_t a = 0x67452301,
+             b = 0xefcdab89,
+             c = 0x98badcfe,
+             d = 0x10325476;
 
     const int r[64] = {
        7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
-       5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+       5, 9,14,20,5, 9,14,20,5, 9,14,20,5, 9,14,20,
        4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
        6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21
     };
 
     #pragma unroll 64
-    for(int i=0;i<64;++i){
-        uint32_t F,g;
-        if      (i<16) F=(b&c)|(~b&d),           g=i;
-        else if (i<32) F=(d&b)|(~d&c),           g=(5*i+1)&15;
-        else if (i<48) F=b^c^d,                  g=(3*i+5)&15;
-        else           F=c^(b|~d),               g=(7*i)&15;
+    for (int i = 0; i < 64; ++i) {
+        uint32_t F, g;
+        if      (i < 16) { F = (b & c) | (~b & d);       g = i;        }
+        else if (i < 32) { F = (d & b) | (~d & c);       g = (5*i+1)&15; }
+        else if (i < 48) { F = b ^ c ^ d;                g = (3*i+5)&15; }
+        else             { F = c ^ (b | ~d);             g = (7*i)&15;   }
         uint32_t tmp = d;
         d = c; c = b;
         F += a + d_K[i] + M[g];
         b += leftrotate(F, r[i]);
         a = tmp;
     }
+
+    // Finalize digest in registers
     a += 0x67452301; b += 0xefcdab89;
     c += 0x98badcfe; d += 0x10325476;
-    uint32_t regs[4] = {a,b,c,d};
+    uint32_t regs[4] = { a, b, c, d };
+
+    // Store out to dig[16]
     #pragma unroll
-    for(int i=0;i<4;++i) {
+    for (int i = 0; i < 4; ++i) {
         dig[4*i  ] =  regs[i]        & 0xFF;
-        dig[4*i+1] = (regs[i] >> 8)  & 0xFF;
+        dig[4*i+1] = (regs[i] >> 8 ) & 0xFF;
         dig[4*i+2] = (regs[i] >> 16) & 0xFF;
         dig[4*i+3] = (regs[i] >> 24) & 0xFF;
     }
