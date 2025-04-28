@@ -34,28 +34,6 @@ The goal of this project is to design and implement a parallelized MD5 hash atta
 
 ---
 
-## Project Structure
-
-```
-gpu-md5-cracker-main/
-├── README.md               # This file
-├── analysis.md             # In-depth methodology & performance analysis
-├── src/
-│   ├── main.cu             # CUDA MD5 cracker + optimizations
-│   ├── md5_cpu.cpp         # CPU baseline (OpenMP)
-│   └── md5_cpu.h           # CPU helper definitions
-├── bin/
-│   ├── gpu_crack.exe       # Compiled GPU executable
-│   └── cpu_crack.exe       # Compiled CPU executable
-├── benchmark/
-│   ├── run.bat             # Batch script to collect timings
-│   ├── results.csv         # GPU vs. CPU timing data
-│   └── plot_results.py     # Python script to generate bar charts
-
-```
-
----
-
 ## Building
 
 ### GPU executable
