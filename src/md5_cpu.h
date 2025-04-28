@@ -2,17 +2,24 @@
 #define MD5_CPU_H
 
 #include <string>
-#include <openssl/md5.h>
+#include <cstdint>
 
-static const char CHARSET[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-static const int CHARSET_SIZE = sizeof(CHARSET) - 1;
-static const int PASSWORD_LEN = 5;  // Fixed to 5 characters
+/* --- minimal MD5 prototype (public-domain) */
+void md5_raw(const unsigned char* data, size_t len, unsigned char digest[16]);
 
-// Convert raw MD5 digest to lowercase hex string
+/* --- brute-force parameters --- */
+static const char CHARSET[] =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+static const int  CHARSET_SIZE = sizeof(CHARSET) - 1;
+static const int  PASSWORD_LEN = 7;
+
+/* --- helpers --- */
 std::string to_hex(const unsigned char* digest);
-// Compute MD5 hash of a null-terminated C string
 std::string md5_hash(const char* input);
-// Brute-force function: returns elapsed seconds, sets found and result
-double brute_force_md5(const std::string& target_hash, bool& found, std::string& result);
 
-#endif  // MD5_CPU_H
+/* brute-force a 7-char password; returns seconds, sets found+result */
+double brute_force_md5(const std::string& target_hash,
+                       bool& found, std::string& result,
+                       int num_threads);
+
+#endif // MD5_CPU_H

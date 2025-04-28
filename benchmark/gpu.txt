@@ -1,0 +1,2 @@
+Password found : aaaaaaa
+GPU elapsed     : 0.000 s  (4197924.47 Ghash/s)
