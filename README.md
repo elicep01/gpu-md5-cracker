@@ -36,7 +36,7 @@ The goal of this project is to design and implement a parallelized MD5 hash atta
 
 ## Project Structure
 
-```
+```text
 gpu-md5-cracker-main/
 ├── README.md               # This file
 ├── analysis.md             # In-depth methodology & performance analysis
@@ -51,15 +51,7 @@ gpu-md5-cracker-main/
 │   ├── run.bat             # Batch script to collect timings
 │   ├── results.csv         # GPU vs. CPU timing data
 │   └── plot_results.py     # Python script to generate bar charts
-├── docs/
-│   ├── roofline_baseline.png
-│   ├── timeline_baseline.png
-│   ├── roofline_opt1.png
-│   ├── timeline_opt1.png
-│   └── …                   # Further profiling screenshots
-└── report/
-    ├── slides.pptx         # Final presentation
-    └── final_report.pdf    # Written project report
+
 ```
 
 ---
