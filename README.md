@@ -36,7 +36,7 @@ The goal of this project is to design and implement a parallelized MD5 hash atta
 
 ## Project Structure
 
-```text
+```
 gpu-md5-cracker-main/
 ├── README.md               # This file
 ├── analysis.md             # In-depth methodology & performance analysis
