@@ -1,2 +1,2 @@
 CPU found: aaaaaaa
-CPU time (8 threads): 0.0008707 s
+CPU time (8 threads): 0.0008375 s

@@ -1,2 +1,2 @@
 Password found : aaaaaaa
-GPU elapsed     : 0.000 s  (4197924.47 Ghash/s)
+GPU elapsed     : 0.000198 s  (5184426.13 Ghash/s)
