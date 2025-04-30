@@ -5,18 +5,18 @@ This project is part of our final course project for **ECE 759: High-Performance
 
 ---
 
-## Project Deliverables
-
-Project Proposal: https://docs.google.com/document/d/11ZABF44t7TLryVB_koVmSWl0wW3Ki8J3/edit?usp=sharing&ouid=103892982613643687776&rtpof=true&sd=true
-Project Presentation: https://docs.google.com/presentation/d/1lvsB7_WiYRj-wiXRcinhw2UV49OnOkf9Ii4djbQtuHM/edit?usp=sharing
-Project Report: https://docs.google.com/document/d/1knIPjmDEbHlpaQAnQpM1v_nIzg3noSsbppSNvpfePjo/edit?usp=sharing
-
----
-
 ## Project Overview
 
 The goal of this project is to design and implement a parallelized MD5 hash attack using **CUDA** to efficiently brute-force 7-character alphanumeric passwords.  
 Modern GPUs can drastically accelerate hash computation through data-parallelism, and this project demonstrates that speedup against a CPU baseline.
+
+---
+
+## Project Deliverables
+
+Project Proposal: https://docs.google.com/document/d/11ZABF44t7TLryVB_koVmSWl0wW3Ki8J3/edit?usp=sharing&ouid=103892982613643687776&rtpof=true&sd=true  
+Project Presentation: https://docs.google.com/presentation/d/1lvsB7_WiYRj-wiXRcinhw2UV49OnOkf9Ii4djbQtuHM/edit?usp=sharing  
+Project Report: https://docs.google.com/document/d/1knIPjmDEbHlpaQAnQpM1v_nIzg3noSsbppSNvpfePjo/edit?usp=sharing  
 
 ---
 
