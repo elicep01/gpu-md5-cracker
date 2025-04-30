@@ -5,12 +5,6 @@
 #include <cstring>
 #include <cctype>
 #include <atomic>
-#include <string_view>
-
-/* --- brute-force parameters --- */
-const char CHARSET[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const int CHARSET_SIZE = sizeof(CHARSET) - 1;
-int PASSWORD_LEN = 7; // Default password length, can be overridden at runtime
 
 /* ================= minimal MD5 (public-domain) ================= */
 

@@ -24,16 +24,9 @@ sed -i \
   -e 's/            break;/            continue;/' \
   md5_cpu.cpp
 
-# 4) Set dynamic password length to 2 and charset (can be modified)
-PASSWORD_LEN=2
-CHARSET="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-# 5) Compile the CPU cracker with the dynamic PASSWORD_LEN and CHARSET_SIZE
+# 5) Compile the CPU cracker
 echo ">>> Compiling CPU cracker (md5_cpu.cpp)…"
-g++ md5_cpu.cpp -O3 -fopenmp -std=c++17 \
-     -DPASSWORD_LEN=$PASSWORD_LEN \
-     -DCHARSET_SIZE=${#CHARSET} \
-     -o cpu_crack
+g++ md5_cpu.cpp -O3 -fopenmp -std=c++17 -o cpu_crack
 
 # 6) Compile the GPU cracker
 GPU_SRC=main.cu
@@ -49,8 +42,8 @@ nvcc "$GPU_SRC" -O3 -std=c++17 \
      -arch=sm_70 \
      -o gpu_crack
 
-# 7) Choose the target for "aa" (MD5("aa"))
-TARGET="186ea1b6f1b60f2a67b19437f7aab6ec"  # MD5("aa")
+# 7) Choose the target for "aaaaaaa" (MD5("aaaaaaa"))
+TARGET="e0c9035898dd52fc65c41454cec9c4d261"  # MD5("aaaaaaa")
 
 # 8) Run CPU version
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
