@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH -p instruction            # Specify partition (adjust to match available partition)
-#SBATCH -t 0-00:10:00             # Time limit (increase if needed)
+#SBATCH -t 0-00:30:00             # Time limit (increase if needed)
 #SBATCH -J md5_compare            # Job name
 #SBATCH -o md5_compare-%j.out     # Output file
 #SBATCH -e md5_compare-%j.err     # Error file
@@ -49,15 +49,18 @@ nvcc "$GPU_SRC" -O3 -std=c++17 \
      -o gpu_crack
 
 echo
-echo ">>> Setting target hash (MD5 of 'x7K2Za1')..."
-# 5) Generate random 7-character alphanumeric password
-RAND_PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c7)
+# 5) Generate random 7-character alphanumeric password (Bash RNG, non-blocking)
+# build array of valid characters
+pw_chars=( {A..Z} {a..z} {0..9} )
+RAND_PW=""
+for i in {1..7}; do
+    RAND_PW+="${pw_chars[RANDOM % ${#pw_chars[@]}]}"
+done
 # compute its MD5 hash
-TARGET=$(printf "%s" "$RAND_PW" | md5sum | awk '{print $1}')
 echo ">>> Generated random password: $RAND_PW"
+TARGET=$(printf "%s" "$RAND_PW" | md5sum | awk '{print $1}')
 echo ">>> Using target hash: $TARGET (MD5 of '$RAND_PW')"
 
-echo
 echo "=== GPU run (blocks=1024, threads=256) ==="
 # 6) Run GPU version FIRST
 gpu_out=$(./gpu_crack "$TARGET")
