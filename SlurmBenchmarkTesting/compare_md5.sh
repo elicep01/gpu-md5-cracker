@@ -1,66 +1,82 @@
 #!/usr/bin/env bash
-#SBATCH -p instruction
-#SBATCH -t 0-00:10:00
-#SBATCH -J md5_compare
-#SBATCH -o md5_compare-%j.out
-#SBATCH -e md5_compare-%j.err
-#SBATCH -c 8
-#SBATCH --mem=8GB
-#SBATCH --gres=gpu:1
+#SBATCH -p instruction            # Specify partition (adjust to match available partition)
+#SBATCH -t 0-00:10:00             # Time limit (increase if needed)
+#SBATCH -J md5_compare            # Job name
+#SBATCH -o md5_compare-%j.out     # Output file
+#SBATCH -e md5_compare-%j.err     # Error file
+#SBATCH -c 16                     # Request 16 CPU cores
+#SBATCH --mem=16GB                # Request 16GB of memory
+#SBATCH --gres=gpu:1              # Request 1 GPU
+
+set -euo pipefail
 
 # 1) Load modules
+echo ">>> Loading modules..."
 module purge
 module load gcc/13.2.0
 module load nvidia/cuda/11.8.0
 
-# 2) Debug: show what .cu/.cpp files you actually have
-echo ">>> Source files in $(pwd):"
-ls -1 *.cpp *.cu || true
 echo
-
-# 3) Patch out illegal breaks in md5_cpu.cpp
-sed -i \
-  -e 's/if (found.load(std::memory_order_relaxed)) break;/if (found.load(std::memory_order_relaxed)) continue;/' \
-  -e 's/            break;/            continue;/' \
-  md5_cpu.cpp
-
-# 5) Compile the CPU cracker
-echo ">>> Compiling CPU cracker (md5_cpu.cpp)…"
-g++ md5_cpu.cpp -O3 -fopenmp -std=c++17 -o cpu_crack
-
-# 6) Compile the GPU cracker
-GPU_SRC=main.cu
-if [[ ! -f "$GPU_SRC" ]]; then
-  echo "ERROR: GPU source '$GPU_SRC' not found!" >&2
-  exit 1
+echo ">>> Patching md5_cpu.cpp..."
+# 2) Patch illegal 'break' statements in md5_cpu.cpp
+if [[ -f md5_cpu.cpp ]]; then
+    sed -i \
+        -e 's/if (found.load(std::memory_order_relaxed)) break;/if (found.load(std::memory_order_relaxed)) continue;/' \
+        -e 's/            break;/            continue;/' \
+        md5_cpu.cpp
+else
+    echo "ERROR: md5_cpu.cpp not found!" >&2
+    exit 1
 fi
 
-echo ">>> Compiling GPU cracker ($GPU_SRC)…"
+echo
+echo ">>> Compiling CPU cracker (md5_cpu.cpp)..."
+# 3) Compile CPU cracker
+g++ md5_cpu.cpp -O3 -fopenmp -std=c++17 -o cpu_crack
+
+echo
+echo ">>> Compiling GPU cracker (main.cu)..."
+# 4) Compile GPU cracker
+GPU_SRC=main.cu
+if [[ ! -f "$GPU_SRC" ]]; then
+    echo "ERROR: GPU source '$GPU_SRC' not found!" >&2
+    exit 1
+fi
 nvcc "$GPU_SRC" -O3 -std=c++17 \
      -maxrregcount=32 \
      --ptxas-options=-v \
      -arch=sm_70 \
      -o gpu_crack
 
-# 7) Choose the target for "aaaaaaa" (MD5("aaaaaaa"))
-TARGET="e0c9035898dd52fc65c41454cec9c4d261"  # MD5("aaaaaaa")
+echo
+echo ">>> Setting target hash (MD5 of 'aaaaaaaa')..."
+# 5) Set target hash (MD5 of "aaaaa")
+TARGET="5d793fc5b00a2348c3fb9ab59e5ca98a"
+echo ">>> Using target hash: $TARGET"
 
-# 8) Run CPU version
-export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
-echo "=== CPU run (${OMP_NUM_THREADS} threads) ==="
-cpu_out=$(./cpu_crack $TARGET -t $OMP_NUM_THREADS)
-echo "$cpu_out"
-cpu_time=$(echo "$cpu_out" | awk '/CPU time/ {print $4}')
-
-# 9) Run GPU version
+echo
 echo "=== GPU run (blocks=1024, threads=256) ==="
-gpu_out=$(./gpu_crack $TARGET)
+# 6) Run GPU version FIRST
+gpu_out=$(./gpu_crack "$TARGET")
 echo "$gpu_out"
-gpu_time=$(echo "$gpu_out" | awk '/GPU elapsed/ {print $3}')
+gpu_time=$(echo "$gpu_out" | grep -oP 'GPU elapsed\s*:\s*\K[0-9.]+' || echo "")
+[[ -z "$gpu_time" ]] && echo "WARNING: Failed to extract GPU time."
 
-# 10) Summary
+echo
+echo "=== CPU run (16 threads) ==="
+# 7) Run CPU version
+export OMP_NUM_THREADS=${SLURM_CPUS_ON_NODE:-16}
+cpu_out=$(./cpu_crack "$TARGET" -t "$OMP_NUM_THREADS")
+echo "$cpu_out"
+cpu_time=$(echo "$cpu_out" | grep -oP 'CPU time\s*\(.*?\)?:\s*\K[0-9.]+' || echo "")
+[[ -z "$cpu_time" ]] && echo "WARNING: Failed to extract CPU time."
+
 echo
 echo ">>> Summary:"
-echo "CPU time: ${cpu_time} s"
-echo "GPU time: ${gpu_time} s"
-awk -v C=$cpu_time -v G=$gpu_time 'BEGIN { printf("Speedup: %.2fx\n", C/G) }'
+echo "GPU time: ${gpu_time:-N/A} s"
+echo "CPU time: ${cpu_time:-N/A} s"
+if [[ -n "$cpu_time" && -n "$gpu_time" && "$gpu_time" != "0" ]]; then
+    awk -v G="$gpu_time" -v C="$cpu_time" 'BEGIN { printf("Speedup (CPU/GPU): %.2fx\n", C/G) }'
+else
+    echo "Speedup: N/A (missing timing data)"
+fi
