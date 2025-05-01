@@ -40,62 +40,52 @@ std::string md5_hash(const std::string& input) {
 }
 
 int main(int argc, char* argv[]) {
-    char *passCode = argv[1];
-    int num_threads = omp_get_max_threads();
-    int length = 5; // Password length
+    char *password = argv[1];
+    int passwordLength = strlen(password);
+    int threadCount = omp_get_max_threads();
 
-    std::string target = md5_hash(passCode);
-    const std::string charset = "abcdefghijklmnopqrstuvwxyz";
-    int charsetSize = charset.size();
-    uint64_t totalCombos = pow(charsetSize, length);
+    std::string hashedPassword = md5_hash(password);
+    const std::string charSet = "abcdefghijklmnopqrstuvwxyz";
+    int charSetSize = charSet.size();
+    uint64_t possiblePasswords = pow(charSetSize, passwordLength);
 
-    std::atomic_bool found(false);
-    std::string result;
+    std::atomic_bool crackedPassword(false);
 
-    omp_set_num_threads(num_threads);
+    omp_set_num_threads(threadCount);
 
-    high_resolution_clock::time_point start1 = high_resolution_clock::now();
+    high_resolution_clock::time_point start = high_resolution_clock::now();
 
     #pragma omp parallel
     {
-        int tid = omp_get_thread_num();
-        int nthreads = omp_get_num_threads();
+        int threadNum = omp_get_thread_num();
+        int threadCount = omp_get_num_threads();
 
-        uint64_t chunkSize = totalCombos / nthreads;
-        uint64_t start = tid * chunkSize;
-        uint64_t end = (tid == nthreads - 1) ? totalCombos : start + chunkSize;
-
-        // #pragma omp critical
-        // {
-        //     std::cout << "Thread " << tid << ":\n";
-        //     std::cout << "  Chunk size = " << chunkSize << "\n";
-        //     std::cout << "  Start      = " << start << "\n";
-        //     std::cout << "  End        = " << end << "\n\n";
-        // }
+        uint64_t passwordsToTry = possiblePasswords / threadCount;
+        uint64_t startPassword = threadNum * passwordsToTry;
+        uint64_t endPassword = startPassword + passwordsToTry;
+        if (threadNum == threadCount - 1) {
+            endPassword = possiblePasswords;
+        }
         
-        std::string attempt(length, 'a');
+        std::string crackAttempt(passwordLength, 'a');
 
-        for (uint64_t i = start; i < end && !found.load(); ++i) {
-            uint64_t temp = i;
-            for (int pos = length - 1; pos >= 0; --pos) {
-                attempt[pos] = charset[temp % charsetSize];
-                temp /= charsetSize;
+        for (uint64_t i = startPassword; i < endPassword && !crackedPassword.load(); ++i) {
+            uint64_t currentPassword = i;
+            for (int pos = passwordLength - 1; pos >= 0; --pos) {
+                crackAttempt[pos] = charSet[currentPassword % charSetSize];
+                currentPassword /= charSetSize;
             }
 
-            if (md5_hash(attempt) == target) {
-                if (!found.exchange(true)) {
-                    result = attempt;
-                }
-                break;
+            if (md5_hash(crackAttempt) == hashedPassword) {
+                crackedPassword.exchange(true);
             }
         }
     }
 
     high_resolution_clock::time_point end = high_resolution_clock::now();
-    duration<double> time_span = duration_cast<duration<double>>(end - start1);
+    duration<double> time = duration_cast<duration<double>>(end - start);
 
-    // Output CSV line
-    std::cout << num_threads << "," << time_span.count() << std::endl;
+    std::cout << time.count() << std::endl;
 
     return 0;
 }

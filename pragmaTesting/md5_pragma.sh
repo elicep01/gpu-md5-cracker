@@ -7,4 +7,4 @@
 
 module load nvidia/cuda/11.8.0
 g++ md5_pragma.cpp -O3 -fopenmp -std=c++17 -o md5_pragma
-./md5_pragma amijan
+./md5_pragma a1b2c3
