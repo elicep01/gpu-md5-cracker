@@ -185,6 +185,8 @@ cd ../benchmark
 python benchmark.py --max-len 6
 python throughput.py
 
+```
+
 ## Contributing
 
 Contributions, issues, and feature requests are welcome!  
