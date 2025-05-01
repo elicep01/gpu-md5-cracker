@@ -173,7 +173,7 @@ All benchmarks were run on AC-power with the dGPU enabled and no other heavy wor
 
 ---
 
-### Reproducing the numbers
+### Reproducing the Numbers
 
 ```bash
 # 1) build best kernel
@@ -185,8 +185,6 @@ cd ../benchmark
 python benchmark.py --max-len 6
 python throughput.py
 
-
----
 ## Contributing
 
 Contributions, issues, and feature requests are welcome!  
