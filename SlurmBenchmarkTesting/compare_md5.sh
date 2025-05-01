@@ -49,10 +49,13 @@ nvcc "$GPU_SRC" -O3 -std=c++17 \
      -o gpu_crack
 
 echo
-echo ">>> Setting target hash (MD5 of 'aaaaaaaa')..."
-# 5) Set target hash (MD5 of "aaaaa")
-TARGET="5d793fc5b00a2348c3fb9ab59e5ca98a"
-echo ">>> Using target hash: $TARGET"
+echo ">>> Setting target hash (MD5 of 'x7K2Za1')..."
+# 5) Generate random 7-character alphanumeric password
+RAND_PW=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c7)
+# compute its MD5 hash
+TARGET=$(printf "%s" "$RAND_PW" | md5sum | awk '{print $1}')
+echo ">>> Generated random password: $RAND_PW"
+echo ">>> Using target hash: $TARGET (MD5 of '$RAND_PW')"
 
 echo
 echo "=== GPU run (blocks=1024, threads=256) ==="
