@@ -1,0 +1,69 @@
+>>> Using target hash: 1b0f2d70702813b94d5138d055453144 (MD5 of 'mE0nPE')
+=== GPU run (blocks=1024, threads=256) ===
+Password found : mE0nPE
+GPU elapsed     : 2.476289 s  (22.94 Ghash/s)
+
+=== CPU run (16 threads) ===
+CPU found: mE0nPE
+CPU time (16 threads): 107.521 s
+
+>>> Summary:
+GPU time: 2.476289 s
+CPU time: 107.521 s
+Speedup (CPU/GPU): 43.42x
+
+>>> Using target hash: e86dc8639f5c04429411d716952a0d5b (MD5 of 'bcUniX')
+=== GPU run (blocks=1024, threads=256) ===
+Password found : bcUniX
+GPU elapsed     : 1.505400 s  (37.73 Ghash/s)
+ 
+=== CPU run (16 threads) ===
+CPU found: bcUniX
+CPU time (16 threads): 16.2267 s
+ 
+>>> Summary:
+GPU time: 1.505400 s
+CPU time: 16.2267 s
+Speedup (CPU/GPU): 10.78x
+
+>>> Using target hash: 33316dddc52095772dae087197124624 (MD5 of 'mFJwKb')
+=== GPU run (blocks=1024, threads=256) ===
+Password found : mFJwKb
+GPU elapsed     : 2.687133 s  (21.14 Ghash/s)
+
+=== CPU run (16 threads) ===
+CPU found: mFJwKb
+CPU time (16 threads): 108.191 s
+
+>>> Summary:
+GPU time: 2.687133 s
+CPU time: 108.191 s
+Speedup (CPU/GPU): 40.26x
+
+>>> Using target hash: e0dab16ce508599bd186d19c3645450a (MD5 of 'xYz5kw')
+=== GPU run (blocks=1024, threads=256) ===
+Password found : xYz5kw
+GPU elapsed     : 1.605573 s  (35.38 Ghash/s)
+
+=== CPU run (16 threads) ===
+CPU found: xYz5kw
+CPU time (16 threads): 197.213 s
+
+>>> Summary:
+GPU time: 1.605573 s
+CPU time: 197.213 s
+Speedup (CPU/GPU): 122.83x
+
+>>> Using target hash: 0029eb3358d61d2fca6bd2b779d68e50 (MD5 of 'BGhRt1')
+=== GPU run (blocks=1024, threads=256) ===
+Password found : BGhRt1
+GPU elapsed     : 1.902934 s  (29.85 Ghash/s)
+
+=== CPU run (16 threads) ===
+CPU found: BGhRt1
+CPU time (16 threads): 234.783 s
+
+>>> Summary:
+GPU time: 1.902934 s
+CPU time: 234.783 s
+Speedup (CPU/GPU): 123.38x
