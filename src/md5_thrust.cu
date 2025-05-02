@@ -98,11 +98,19 @@ struct CrackFunctor {
         unsigned char dig[16];
         md5_single(pw, dig);
 
-        // compare in 128‐bit chunks
-        uint4* d4 = (uint4*)dig;
-        if (d4->x==target4.x && d4->y==target4.y
-         && d4->z==target4.z && d4->w==target4.w) {
-            if (atomicCAS((int*)&g_found,0,1)==0)
+        // Fix: Compare byte-by-byte to handle endianness
+        bool match = true;
+        unsigned char* target_bytes = (unsigned char*)&target4;
+        #pragma unroll
+        for (int i = 0; i < 16; ++i) {
+            if (dig[i] != target_bytes[i]) {
+                match = false;
+                break;
+            }
+        }
+
+        if (match) {
+            if (atomicCAS((int*)&g_found, 0, 1) == 0)
                 g_idx = idx;
         }
     }
@@ -130,12 +138,18 @@ int main(int argc, char** argv) {
     for (int i=0;i<PASSWORD_LEN;++i)
         total_pw *= HOST_CHARSET_SIZE;
 
-    // 4) launch Thrust search
+    // 4) launch Thrust search in chunks
     thrust::counting_iterator<uint64_t> start(0);
     CrackFunctor functor{target4, total_pw};
 
-    // this will schedule enough threads to cover [0,total_pw)
-    thrust::for_each_n(thrust::device, start, total_pw, functor);
+    const uint64_t max_threads_per_launch = 1ULL << 30; // Limit to 2^30 threads per launch
+    uint64_t processed = 0;
+
+    while (processed < total_pw && !g_found) {
+        uint64_t chunk_size = std::min(max_threads_per_launch, total_pw - processed);
+        thrust::for_each_n(thrust::device, start + processed, chunk_size, functor);
+        processed += chunk_size;
+    }
 
     // 5) copy back result
     if (g_found) {
@@ -154,4 +168,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
