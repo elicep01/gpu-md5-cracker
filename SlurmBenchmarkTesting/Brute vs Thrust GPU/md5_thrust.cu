@@ -134,19 +134,8 @@ int main(int argc, char** argv) {
     thrust::counting_iterator<uint64_t> start(0);
     CrackFunctor functor{target4, total_pw};
 
-    // Explicitly set block size and grid size
-    const int threads_per_block = 256; // Reasonable default for modern GPUs
-    const uint64_t max_blocks = (total_pw + threads_per_block - 1) / threads_per_block;
-
-    // Ensure the number of blocks does not exceed the maximum grid size
-    const int max_grid_size = 2147483647; // Maximum grid size for CUDA
-    const uint64_t grid_size = (max_blocks > max_grid_size) ? max_grid_size : max_blocks;
-
-    // Use thrust::for_each_n with explicit execution policy
-    thrust::for_each_n(
-        thrust::cuda::par.on(cudaStreamPerThread).with_block_size(threads_per_block),
-        start, grid_size * threads_per_block, functor
-    );
+    // Use thrust::for_each_n with the default execution policy
+    thrust::for_each_n(thrust::device, start, total_pw, functor);
 
     // 5) copy back result
     if (g_found) {
