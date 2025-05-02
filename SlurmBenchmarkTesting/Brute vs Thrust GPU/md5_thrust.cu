@@ -98,11 +98,19 @@ struct CrackFunctor {
         unsigned char dig[16];
         md5_single(pw, dig);
 
-        // compare in 128‐bit chunks
-        uint4* d4 = (uint4*)dig;
-        if (d4->x==target4.x && d4->y==target4.y
-         && d4->z==target4.z && d4->w==target4.w) {
-            if (atomicCAS((int*)&g_found,0,1)==0)
+        // Fix: Compare byte-by-byte to handle endianness
+        bool match = true;
+        unsigned char* target_bytes = (unsigned char*)&target4;
+        #pragma unroll
+        for (int i = 0; i < 16; ++i) {
+            if (dig[i] != target_bytes[i]) {
+                match = false;
+                break;
+            }
+        }
+
+        if (match) {
+            if (atomicCAS((int*)&g_found, 0, 1) == 0)
                 g_idx = idx;
         }
     }
