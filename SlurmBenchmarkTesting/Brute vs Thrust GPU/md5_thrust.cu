@@ -130,12 +130,18 @@ int main(int argc, char** argv) {
     for (int i=0;i<PASSWORD_LEN;++i)
         total_pw *= HOST_CHARSET_SIZE;
 
-    // 4) launch Thrust search
+    // 4) launch Thrust search in chunks
     thrust::counting_iterator<uint64_t> start(0);
     CrackFunctor functor{target4, total_pw};
 
-    // Use thrust::for_each_n with the default execution policy
-    thrust::for_each_n(thrust::device, start, total_pw, functor);
+    const uint64_t max_threads_per_launch = 1ULL << 30; // Limit to 2^30 threads per launch
+    uint64_t processed = 0;
+
+    while (processed < total_pw && !g_found) {
+        uint64_t chunk_size = std::min(max_threads_per_launch, total_pw - processed);
+        thrust::for_each_n(thrust::device, start + processed, chunk_size, functor);
+        processed += chunk_size;
+    }
 
     // 5) copy back result
     if (g_found) {
